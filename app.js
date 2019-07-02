@@ -1,3 +1,4 @@
+// Setup
 require('dotenv').config()
 const express = require('express')
 const { check, validationResult } = require('express-validator')
@@ -9,6 +10,7 @@ const LocalStrategy = require('passport-local').Strategy
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+// Models
 const User = require('./models/User')
 
 const mongoDB = process.env.MONGO_CONNECT_STRING
