@@ -9,6 +9,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const port = process.env.PORT || 300
 
 // Models
 const User = require('./models/User')
@@ -19,8 +20,14 @@ const db = mongoose.connection
 db.on('error', console.error.bind(console, 'mongo connection error'))
 
 const app = express()
-app.engine('handlebars', exphbs())
-app.set('view engine', 'handlebars')
+app.engine('handlebars', exphbs({
+    extname: 'handlebars',
+    defaultLayout: 'main',
+    partialsDir: path.join(__dirname, 'views/partials'),
+    layoutsDir: path.join(__dirname, 'views/layouts')
+  }));
+app.set('view engine', 'handlebars');
+app.set('views',path.join(__dirname,'views'))
 
 
 app.use(session({ secret: 'tyler', resave: false, saveUninitialized: true }))
@@ -31,6 +38,22 @@ app.get('/', (req, res) => {
     res.render('home')
 })
 
-app.listen(3000, () => {
-    console.log('app listening on http://localhost:3000')
+app.get('/sign-up', (req, res) => {
+    res.render('sign-up')
 })
+
+app.post("/sign-up", (req, res, next) => {
+    const user = new User({
+        username: req.body.username,
+        password: req.body.password
+    }).save(err => {
+        if (err) return next(err)
+        res.redirect("/")
+    })
+})
+
+app.listen(port, () => {
+    console.log(`app listening on http://localhost:${port}`)
+})
+
+module.exports = app
