@@ -13,6 +13,7 @@ const port = process.env.PORT || 300
 
 // Models
 const User = require('./models/User')
+const Post = require('./models/Post')
 
 const mongoDB = process.env.MONGO_CONNECT_STRING
 mongoose.connect(mongoDB, { useNewUrlParser: true })
@@ -29,17 +30,55 @@ app.engine('handlebars', exphbs({
 app.set('view engine', 'handlebars');
 app.set('views',path.join(__dirname,'views'))
 
+app.use(express.static(path.join(__dirname, '/public')))
 
 app.use(session({ secret: 'tyler', resave: false, saveUninitialized: true }))
+
+// passport setup
+
+passport.use(
+    new LocalStrategy((username, password, done) => {
+        User.findOne({ username: username }, (err, user) => {
+            if (err) return done(err)
+            if (!user) {
+                return done(null, false, { msg: "Incorrect username" })
+            }
+            if (user.password !== password) {
+                return done(null, false, { msg: "Incorrect password" })
+            }
+            return done(null, user)
+        })
+    })
+)
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id)
+})
+  
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
+        done(err, user)
+    })
+})
+
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(express.urlencoded({ extended: false }))
 app.get('/', (req, res) => {
-    res.render('home')
+    res.render('home', { user: req.user })
 })
 
 app.get('/sign-up', (req, res) => {
     res.render('sign-up')
+})
+
+app.get('/log-in', (req, res) => {
+    res.render('log-in')
+})
+
+app.get("/log-out", (req, res) => {
+    req.logout()
+    res.redirect("/")
 })
 
 app.post("/sign-up", (req, res, next) => {
@@ -51,6 +90,16 @@ app.post("/sign-up", (req, res, next) => {
         res.redirect("/")
     })
 })
+
+app.post("/log-in", passport.authenticate("local", {
+        successRedirect: "/",
+        failureRedirect: "/"
+    })
+)
+
+app.use(function (req, res, next) {
+    res.status(404).render('404')
+  })
 
 app.listen(port, () => {
     console.log(`app listening on http://localhost:${port}`)

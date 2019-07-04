@@ -1,1 +1,16 @@
-<h1>Chattr: Home</h1>
+{{#if user }}
+{{> dashboard user=user}}
+{{else}}
+<div class="flex flex-row items-center justify-between">
+    <div class="mx-auto">
+        <h1 class="text-6xl">Chattr</h1>
+        <p>Welcome to the future of chat.</p>
+
+        <div class="flex flex-row items-center py-4">
+            <a href="/sign-up" class="shadow-hard border-2 rounded px-4 py-2 bg-blue">Signup</a>
+            <a class="pl-4" href="/log-in">or Login.</a>
+        </div>
+    </div>
+    <img class="w-1/2 px-auto" src="/images/chat.svg" alt="chat">
+</div>
+{{/if }}
