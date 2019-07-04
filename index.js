@@ -87,7 +87,9 @@ app.post("/sign-up", (req, res, next) => {
         password: req.body.password
     }).save(err => {
         if (err) return next(err)
-        res.redirect("/")
+        passport.authenticate('local')(req, res, function () {
+            res.render('home', { user: req.user });
+        })
     })
 })
 
