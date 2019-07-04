@@ -1,4 +1,7 @@
 <h1>please log in</h1>
+{{#if message}}
+  {{ message }}
+{{/if}}
 <form action="/log-in" method="POST">
   <label for="username">Username</label>
   <input name="username" placeholder="username" type="text">

@@ -7,6 +7,7 @@ const path = require('path')
 const session = require('express-session')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
+const flash = require('connect-flash')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const port = process.env.PORT || 300
@@ -33,6 +34,7 @@ app.set('views',path.join(__dirname,'views'))
 app.use(express.static(path.join(__dirname, '/public')))
 
 app.use(session({ secret: 'tyler', resave: false, saveUninitialized: true }))
+app.use(flash())
 
 // passport setup
 
@@ -63,6 +65,12 @@ passport.deserializeUser(function(id, done) {
 
 app.use(passport.initialize())
 app.use(passport.session())
+
+app.use(function(req, res, next) {
+    res.locals.currentUser = req.user
+    next()
+})
+
 app.use(express.urlencoded({ extended: false }))
 app.get('/', (req, res) => {
     res.render('home', { user: req.user })
@@ -73,7 +81,12 @@ app.get('/sign-up', (req, res) => {
 })
 
 app.get('/log-in', (req, res) => {
-    res.render('log-in')
+    res.render('log-in', { message: req.flash('info') })
+})
+
+app.get('/login-failed', (req, res) => {
+    req.flash('info', 'Log in failed, did you spell everything correctly?')
+    res.redirect('/log-in')
 })
 
 app.get("/log-out", (req, res) => {
@@ -95,7 +108,8 @@ app.post("/sign-up", (req, res, next) => {
 
 app.post("/log-in", passport.authenticate("local", {
         successRedirect: "/",
-        failureRedirect: "/"
+        failureRedirect: "/login-failed",
+        failureFlash: true
     })
 )
 
